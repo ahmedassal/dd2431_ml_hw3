@@ -1,0 +1,46 @@
+dataset: iris, covdiag: False, boost: False
+dataset: iris, covdiag: False, boost: False
+Final mean classification accuracy: 97.2888888889 Standard deviation: 2.14487617991
+
+dataset: iris, covdiag: False, boost: False
+Final mean classification accuracy: 97.2444444444 Standard deviation: 2.29050644031
+
+dataset: iris, covdiag: False, boost: False
+Final mean classification accuracy: 97.0222222222 Standard deviation: 2.08983430142
+
+dataset: iris, covdiag: True, boost: False
+Final mean classification accuracy: 96.1111111111 Standard deviation: 2.72845092396
+
+dataset: iris, covdiag: False, boost: False
+Final mean classification accuracy: 97.4 Standard deviation: 2.1094730487
+
+dataset: vowel, covdiag: True, boost: False
+Final mean classification accuracy: 65.1038961039 Standard deviation: 3.97391986956
+
+dataset: iris, covdiag: True, boost: False
+Final mean classification accuracy: 95.4888888889 Standard deviation: 2.72989847412
+
+dataset: iris, covdiag: False, boost: False
+Final mean classification accuracy: 97.0666666667 Standard deviation: 2.39092936112
+
+dataset: vowel, covdiag: True, boost: False
+Final mean classification accuracy: 65.2077922078 Standard deviation: 3.71230989133
+
+dataset: vowel, covdiag: False, boost: False
+Final mean classification accuracy: 91.3181818182 Standard deviation: 2.42731233421
+
+dataset: olivetti, covdiag: True, boost: False
+Final mean classification accuracy: 59.5333333333 Standard deviation: 3.69556791606
+
+dataset: olivetti, covdiag: False, boost: False
+Final mean classification accuracy: 70.2583333333 Standard deviation: 3.53689875142
+
+dataset: iris, covdiag: True, boost: False
+Final mean classification accuracy: 95.0888888889 Standard deviation: 3.08392887142
+
+dataset: iris, covdiag: True, boost: True
+Final mean classification accuracy: 95.4444444444 Standard deviation: 2.31740595718
+
+dataset: iris, covdiag: False, boost: True
+Final mean classification accuracy: 95.2888888889 Standard deviation: 3.2852833089
+

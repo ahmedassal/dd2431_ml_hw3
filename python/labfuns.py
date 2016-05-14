@@ -128,7 +128,7 @@ def fetchDataset(dataset='iris'):
         y = genfromtxt('vowelY.txt', delimiter=',',dtype=np.int)
         pcadim = 0
     else:
-        print "Please specify a dataset!"
+        print("Please specify a dataset!")
         X = np.zeros(0)
         y = np.zeros(0)
         pcadim = 0
@@ -159,7 +159,20 @@ def scatter2D(X,y):
 
     plt.show()
 
-
+def plotGaussianNoEllipses(X, y):
+    labels = np.unique(y)
+    Ncolors = len(labels)
+    xx = np.arange(Ncolors)
+    ys = [i+xx+(i*xx)**2 for i in range(Ncolors)]
+    colors = cm.rainbow(np.linspace(0, 1, len(ys)))
+    c = 1.0
+    for label in labels:
+        classIdx = y==label
+        Xclass = X[classIdx,:]
+        #plot_cov_ellipse(sigma[:,:,label], mu[label])
+        plt.scatter(Xclass[:,0],Xclass[:,1],linewidths=1,s=25,color=colors[label],marker='o',alpha=0.75)
+        c += 1.
+    plt.show()
 
 def plotGaussian(X,y,mu,sigma):
     labels = np.unique(y)
