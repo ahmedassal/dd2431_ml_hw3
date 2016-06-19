@@ -133,11 +133,6 @@ def computePrior(labels,W=None):
         prior = np.empty(classesNo)
         for i in range(classesNo):
             prior[labels[i]] += W[i]
-
-    # print(prior)
-    # labels = [int(label) for label in labels]
-    # print(np.bincount(labels)/len(labels))
-
     return prior
 
 # Note that you do not need to handle the W argument for this part
@@ -148,9 +143,12 @@ def computePrior(labels,W=None):
 #      sigma - d x d x C matrix of class covariances
 def mlParams(X,labels,W=None):
     # Your code here
+    # print("X ", X.shape)
+    # print("X ", X)
+    # print("W ", W.shape)
+    # print("W ", W)
     labels = [int(label) for label in labels]
     classes = np.unique(labels)
-
     classesNo = classes.shape[0]
     dims = X.shape[1]
     dataNo = X.shape[0]
@@ -160,90 +158,121 @@ def mlParams(X,labels,W=None):
     mu = np.zeros((classesNo, dims));
     sigma = np.zeros((dims, dims, classesNo))
 
-    # print("mlParams------------")
-    # print(X.shape)
-    # print(mu.shape)
-    # print(sigma.shape)
-    # print(classes)
-    # print("mlParams-2----------")
-
     #### sort X by class
     Xt = np.transpose(X)
-    # print("Xt ", Xt.shape)
-    # print("Xt ", Xt)
-    # Wt = np.transpose(W)
-    # print(Wt)
     Xw = np.transpose(np.multiply( W, Xt))
+
     # print("Xw ", Xw.shape)
     # print("Xw ", Xw)
+    # print("dataNo ", dataNo)
 
     Xk = np.asarray([[Xw[i] for i in range(dataNo) if labels[i] == clas] \
                      for clas in classes])
 
-    Xk2 = np.asarray([[X[i] for i in range(dataNo) if labels[i] == clas] \
-                     for clas in classes])
+    # print("Xk ", Xk.shape)
+    # Xk2 = np.asarray([[X[i] for i in range(dataNo) if labels[i] == clas] \
+    #                  for clas in classes])
+    # Xk2 = []
+    #
+    # for clas in classes:
+    #     classEl=[]
+    #     for i in range(dataNo):
+    #         if (labels[i] == clas) :
+    #             classEl.append(X[i])
+    #     classEl = np.asarray(classEl)
+    #     print("classEl ", classEl.shape)
+    #     Xk2.append(classEl)
+    # Xk2 = np.asarray(Xk2)
+    # print("Xk ", Xk.shape)
+    #
+    # print("Xk2 ", Xk2.ndim)
 
-    Wk = np.asarray([[W[i] for i in range(dataNo) if labels[i] == clas] \
-                     for clas in classes])
-    # print(Xk2.shape)
-    # print(Wk.shape)
-    # print(mu.shape)
-    # print(Xk[0])
-    # print(type(Xk))
-    # print(labels[0])
-    # print("mlParams------------")
+
+    ## New way
+    muk = np.zeros((dims))
+
+    # Wk = np.zeros((dims))
+    # print("classesNo", classesNo)
+    Wkss = []
+    mu = []
     for cls in range(classesNo):
-        for d in range(dims):
-            for n in range(Xk2.shape[1]):
-                # print(cls, d, n)
-                mu[cls, d] += Xk2[cls, n, d] * Wk[cls, n]  # (mu[cls, d] / Wks[cls]
+        classEl = []
+        # Wk = []
+        sumWk = 0
+        for i in range(dataNo):
+            if (labels[i] == cls):
+                classEl.append(Xw[i])
+                sumWk +=  W[i]
+                # Wk.append(W[i])
+        classEl = np.asarray(classEl)
+        # Wk = np.asarray(Wk)
+        # print("Wk ", Wk)
+        # Wks = [np.sum(Wk, axis=0)]
+        # print("Wks ", Wks)
+        # Wkss.append(Wks)
+        # muk = np.multiply(Wk, classEl)
+        # print("muk ", muk)
+        # muk = np.sum(np.asarray(muk), axis = 0) / Wks[0]
+        muk = np.sum(classEl, axis=0) / sumWk
+        # print("muk ", muk)
+        mu.append(muk)
+    # Wkss = np.asarray(Wkss)
+    # print("Wkss ", Wkss.shape)
+    # print("Wkss ", Wkss)
+    mu = np.asarray(mu)
+    # print("mu ", mu.shape)
+    # print("mu ", mu)
+    ## old
+    # Wk = np.asarray([[W[i] for i in range(dataNo) if labels[i] == clas] \
+    #                  for clas in classes])
+    # for cls in range(classesNo):
+    #     print("cls ", cls, " ", classesNo)
+    #     for d in range(dims):
+    #         print("dims ", d, " ", dims)
+    #         print("Xk2 ", Xk2.shape)
+    #         for n in range(Xk2.shape[1]):
+    #             print("Xk2 ", n, " ", Xk2.shape[1])
+    #             print(cls, d, n)
+    #             mu[cls, d] += Xk2[cls, n, d] * Wk[cls, n]  # (mu[cls, d] / Wks[cls]
 
-    Wks = np.sum(Wk, axis=1)
-    for cls in range(classesNo):
-        for d in range(mu.shape[1]):
-            mu[cls, d] = mu[cls, d] / Wks[cls]
-
-    # mu = np.transpose(np.sum(Xk, axis=1)) #/ np.sum(W)
-    # mu = np.sum(Xk, axis=1)  # / np.sum(W)
-    # print(mu.shape)
-
-
-
-
-    # print(Wks)
-    # mum = np.transpose(np.divide(mu,Wks))
-    # print(mum.shape)
-    # mu2 = np.mean(Xk2, axis=1)
-    # print(mu2.shape)
-    # print(np.all(mu==mu2))
-    # # print(mu)
-    # # print(mum)
-    # print(mu2)
-
-
-
+    # Wks = np.sum(Wk, axis=1)
+    # for cls in range(classesNo):
+    #     for d in range(mu.shape[1]):
+    #         mu[cls, d] = mu[cls, d] / Wks[cls]
 
     #### center X
-    Xc = np.asarray([np.subtract(X[i], mu[c, :]) for c in classes for i in range(dataNo) if labels[i] == c])
+    # Xc = np.asarray([np.subtract(X[i], mu[c, :]) for c in classes for i in range(dataNo) if labels[i] == c])
 
-    #### center Xk sorted by class
-    # Xkc = np.asarray([np.subtract(Xk[c, i, :], mu[c, :]) for c in classes for i in range(Xk.shape[1])])
+    #### sort Xc centered by class
+    # Xck = np.asarray([[Xc[i] for i in range(dataNo) if labels[i] == clas] \
+    #                   for clas in classes])
+    # print("X ", X[:])
+    # print("mu ", mu[:,:])
 
-    #### sort Xc centered by category
-    Xck = np.asarray([[Xc[i] for i in range(dataNo) if labels[i] == clas] \
-                      for clas in classes])
 
-    s = np.zeros((dims, dims))
-
-    for c in range(Xck.shape[0]):
+    for cls in range(classesNo):
+        s = np.zeros((dims, dims))
         totweight = 0
+        # print("cls ", cls)
         for i in range(dataNo):
-            if (labels[i] == classes[c]):
-                s = np.add(s, np.outer(Xc[i, :], Xc[i, :])* W[i])
+            if (labels[i] == classes[cls]):
+                Xc = np.subtract(X[i, :], mu[cls, :])
+                # s = np.add(s, np.outer(Xc[i, :], Xc[i, :])* W[i])
+                # print("X ", X[i])
+                # print("mu ", mu[cls,:])
+                # print("Xc ", Xc)
+                # print("outer(Xc[:], Xc[:])", np.outer(Xc[:], Xc[:]))
+
+                # print("W ", W[i])
+                # print("outer(Xc[:], Xc[:]) * W[i]", np.outer(Xc[:], Xc[:])* W[i])
+
+                s = np.add(s, np.outer(Xc[:], Xc[:]) * W[i])
+                # print("S ", s)
                 totweight += W[i]
-                # print(count)
-        s /= totweight;
-        sigma[:, :, c] = s
+                # print("totweight ", totweight)
+        s /= totweight
+        # print("S ", s)
+        sigma[:, :, cls] = s
         # sigma[:,:,c]
 
     return mu, sigma
@@ -259,20 +288,12 @@ def classify(X,prior,mu,sigma,covdiag=True):
     # L = np.linalg.cholesky(A)
     # y = np.linalg.solve(L,b)
     # x = np.linalg.solve(L.H,y)
-    # Your code here
-    # Example code for solving a psd system
-    # priors = computePrior(labels)
-    logPosteriors = np.zeros((sigma.shape[2], X.shape[0]))
-    classesNo =sigma.shape[2]
+    classesNo = sigma.shape[2]
     dims = X.shape[1]
     dataNo = X.shape[0]
-    # print(X.shape)
-    # print(mu.shape)
-    # print(sigma.shape)
-    # print(logPosteriors.shape)
-    # print(classesNo)
-    # print(dataNo)
-    # print(dims)
+
+    logPosteriors = np.zeros((classesNo, dataNo))
+
     for cls in range(classesNo):
 
         # print(sigmac.shape)
@@ -284,8 +305,6 @@ def classify(X,prior,mu,sigma,covdiag=True):
                     try:
                         sigmaInv = np.linalg.inv(sigmac)
                         L = sigmaInv
-                        # print(sigmac)
-                        # print(sigmaInv)
                         # print("Inverse found!!")
                     except np.linalg.LinAlgError:
                         # Not invertible. Skip this one.
@@ -297,10 +316,9 @@ def classify(X,prior,mu,sigma,covdiag=True):
                         # # x = np.linalg.solve(L.getH(), y)
                         # x = np.linalg.solve(np.transpose(L), y)
 
-                    #         else:
+                    # else:
                     # continue with what you were doing
-
-                    lnl = np.log(np.linalg.det(sigmac))
+                    lnl = np.log(np.power(np.linalg.det(sigmac),2))
                     logPosteriors[cls, i] = -1 / 2 * lnl \
                                             - 1 / 2 * np.dot(np.dot(b, L), np.transpose(b)) \
                                             + np.log(prior[cls])
@@ -321,12 +339,6 @@ def classify(X,prior,mu,sigma,covdiag=True):
                     lnl = 2 * np.sum(np.log(np.diag(L)))
 
                     # return L, np.transpose(x)
-
-                    # print(.shape)
-                    # print(.shape)
-                    # print(np.transpose(b).shape)
-                    # print( x.shape)
-                    # print( np.dot(np.transpose(b), x).shape)
                     # print((-1 / 2 * lnl \
                     #        - 1 / 2 * np.dot(np.transpose(b), x) \
                     #        + np.log(prior[cls])).shape)
@@ -339,7 +351,7 @@ def classify(X,prior,mu,sigma,covdiag=True):
                     #                         + np.log(prior[cls])
 
                     logPosteriors[cls, i] = -1 / 2 * lnl \
-                                            - 1 / 2 * np.dot(np.transpose(b), x) \
+                                            - 1 / 2 * np.dot(np.dot(np.transpose(b), x) , b)\
                                             + np.log(prior[cls])
                     # logPosteriors[cls, i] = -1 / 2 * lnl \
                     #                         - 1 / 2 * np.dot(np.transpose(b), np.transpose(x)) \
@@ -547,7 +559,7 @@ def plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=True
     ys = [i+xx+(i*xx)**2 for i in range(len(classes))]
     colormap = cm.rainbow(np.linspace(0, 1, len(ys)))
 
-    plt.hold(True)
+    plt.hold(False)
     conv = ColorConverter()
     for (color, c) in zip(colormap, classes):
         try:
@@ -559,12 +571,17 @@ def plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=True
 
     plt.xlim(np.min(pX[:,0]),np.max(pX[:,0]))
     plt.ylim(np.min(pX[:,1]),np.max(pX[:,1]))
-    fignam = dataset + '_' + 'covdiag_' + str(covdiag) + '_boost_' + str(doboost) + '.png'
-    plt.figure(fignam)
+    figtitle =dataset + '_' + 'covdiag_' + str(covdiag) + '_boost_' + str(doboost)
+    fignam = figtitle + '.png'
+    fig = plt.figure(1)
     # plt.draw()
-    # plt.show(block=False)
+    plt.title(figtitle)
+    plt.show(block=False)
+    # plt.show(block=True)
 
     # plt.savefig(fignam)
+    fig.savefig(fignam, dpi=fig.dpi);
+    plt.close(fig)
 
 
 # ## Run some experiments
@@ -576,7 +593,36 @@ def run(dataset, split=0.7, doboost=False, boostiter=5, covdiag=True):
     testClassifier(dataset=dataset, split=split, doboost=doboost, boostiter=boostiter, covdiag=covdiag)
     plotBoundary(dataset=dataset, split=split, doboost=doboost, boostiter=boostiter, covdiag=covdiag)
 
-def main():
+def main1():
+    X, labels = genBlobs(centers=5)
+    # W = 1 / X.shape[0] * np.ones(X.shape[0])
+    # W = np.ones(X.shape[0])
+    mu, sigma = mlParams(X, labels)
+    plotGaussian(X, labels, mu, sigma)
+
+def main_testclassifier():
+    testClassifier(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    # testClassifier(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=False)
+    # plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=False)
+
+    testClassifier(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    plotBoundary(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    # testClassifier(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=False)
+    # plotBoundary(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=False)
+
+    testClassifier(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    plotBoundary(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    # testClassifier(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=False)
+    # plotBoundary(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=False)
+
+    testClassifier(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    plotBoundary(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    # testClassifier(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=False)
+    # plotBoundary(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=False)
+    pass
+
+def main_final():
     # testEstimates()
     np.set_printoptions(threshold=np.nan)
     np.set_printoptions(precision=25)
@@ -590,42 +636,36 @@ def main():
         run(set, doboost=True, covdiag=True)
         run(set, doboost=True, covdiag=False)
 
+
+def main_dummydata():
+    # X, labels = genBlobs(centers=5)
+    X = np.arange(8).reshape(4, 2)
+    labels = np.asarray([0, 0, 1, 1])
+    # print(X)
+    # print(X.shape)
+    W = 1 / X.shape[0] * np.ones(X.shape[0])
+    # print(W)
+    # print(W.shape)
+    # W = np.ones(X.shape[0])
+    # W = np.arange(4)
+    mu, sigma = mlParams(X, labels, W)
+    # print("mu ", mu)
+    plotGaussian(X, labels, mu, sigma)
+
+
 if __name__ == '__main__':
-    main()
-# testClassifier(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=True)
-# plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=True)
-# testClassifier(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=False)
-# plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=False)
+    # main_dummydata()
+    # main1()
+    main_testclassifier()
+    # main_final()
 
-# #######Bug
-# testClassifier(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=True)
-# plotBoundary(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=True)
-# testClassifier(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=False)
-# plotBoundary(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=False)
 
-# testClassifier(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=True)
-# plotBoundary(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=True)
-# testClassifier(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=False)
-# plotBoundary(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=False)
 
-# testClassifier(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=True)
-# plotBoundary(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=True)
-# testClassifier(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=False)
-# plotBoundary(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=False)
 
-# X, labels = genBlobs(centers=5)
-# X = np.arange(8).reshape(4,2)
-# labels = np.asarray([0,0,1,1])
-# print(X.shape[0])
-# W = 1/X.shape[0] * np.ones(X.shape[0])
-# W = np.ones(X.shape[0])
-# W = np.arange(4)
-# print(W)
-# print(X)
-# mu, sigma = mlParams(X,labels, W)
 
-X, labels = genBlobs(centers=5)
-W = 1/X.shape[0] * np.ones(X.shape[0])
-# W = np.ones(X.shape[0])
-mu, sigma = mlParams(X,labels, W)
-plotGaussian(X,labels,mu,sigma)
+
+
+
+
+
+
