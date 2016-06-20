@@ -124,15 +124,23 @@ def computePrior(labels,W=None):
     classes = np.unique(labels)
     classesNo = classes.shape[0]
     dataNo = labels.shape[0]
+
     if W is None:
         l = [[labels[i] for i in range(dataNo) if labels[i] == clas] \
              for clas in classes]
         prior = np.zeros(len(l))
         prior = [len(l[i]) / dataNo for i in range(len(l))]
     else:
-        prior = np.empty(classesNo)
-        for i in range(classesNo):
-            prior[labels[i]] += W[i]
+        sumW = np.sum(W,axis = 0)
+        prior = np.zeros(classesNo)
+        tot = 0
+        for cls in range(classesNo):
+            for i in range(dataNo):
+                if(labels[i]==cls):
+                    prior[classes[cls]] += W[i]
+                    tot += W[i]
+        prior[:] /= tot
+
     return prior
 
 # Note that you do not need to handle the W argument for this part
@@ -328,11 +336,12 @@ def classify(X,prior,mu,sigma,covdiag=True):
                     L = np.zeros(sigmac.shape)
                     x = 0
                     A = sigmac
-                    b = np.transpose(np.subtract(X[i], mu[cls]))
+                    # b = np.transpose(np.subtract(X[i], mu[cls]))
+                    b = np.subtract(X[i], mu[cls])
                     L = np.linalg.cholesky(A)
-                    y = np.linalg.solve(L, b)
+                    v = np.linalg.solve(L, np.transpose(b))
                     # x = np.linalg.solve(L.getH(),y)
-                    x = np.linalg.solve(np.transpose(L), y)
+                    y = np.linalg.solve(np.transpose(L), v)
 
 
                     # lnl= np.log(np.linalg.det(sigmac))
@@ -349,11 +358,25 @@ def classify(X,prior,mu,sigma,covdiag=True):
                     # logPosteriors[cls, i] = -1 / 2 * lnl \
                     #                         - 1 / 2 * np.dot(b, x) \
                     #                         + np.log(prior[cls])
+                    # print("Full ", np.dot(np.dot(b, y), np.transpose(b)))
+                    # print("Full ", np.dot(b, v))
 
+                    # t1 = np.dot(b, y)
+                    # t2 = np.dot(y, np.transpose(b))
+                    # b = b.reshape((4,1))
+                    # y = y.reshape((4, 1))
+                    # print("y ", y, " ", y.shape)
+                    # print("b ", b, " ", b.shape)
+                    # print("np.dot(b, y) ", t1, " ", t1.shape)
+                    # print("np.dot( y, np.transpose(b)) ", t2, " ", t2.shape)
                     logPosteriors[cls, i] = -1 / 2 * lnl \
-                                            - 1 / 2 * np.dot(np.dot(np.transpose(b), x) , b)\
+                                            - 1 / 2 * np.dot(b, v)  \
                                             + np.log(prior[cls])
-                    # logPosteriors[cls, i] = -1 / 2 * lnl \
+                    # print("Logpost ", logPosteriors[cls,i])
+                        #- 1 / 2 * np.dot(b, np.dot(y, np.transpose(b)))
+                        #- 1 / 2 * np.dot(np.dot(b, y), np.transpose(b)) \
+                        # - 1 / 2 * np.dot(np.dot(np.transpose(b), y), b) \
+                # logPosteriors[cls, i] = -1 / 2 * lnl \
                     #                         - 1 / 2 * np.dot(np.transpose(b), np.transpose(x)) \
                     #                         + np.log(prior)
 
@@ -387,41 +410,61 @@ def classify(X,prior,mu,sigma,covdiag=True):
 def trainBoost(X,labels,T=5,covdiag=True):
     # Your code here
     # return priors,mus,sigmas,alphas
-    c = len(set(labels))
-    d = len(X[0])
-    n = len(labels)
 
-    priors = np.zeros([T, c])
-    mus = np.zeros([T, c, d])
-    sigmas = np.zeros([T, d, d, c])
+    # data stats
+    # c = len(set(labels))
+    # d = len(X[0])
+    # n = len(labels)
+    classes = np.unique(labels)
+    classesNo = classes.shape[0]
+    dims = X.shape[1]
+    dataNo = X.shape[0]
+
+    # data sturcts initializations
+    # priors = np.zeros((T, c))
+    # mus = np.zeros((T, c, d))
+    # sigmas = np.zeros([T, d, d, c])
+    # alphas = np.zeros(T)
+    priors = np.zeros((T, classesNo))
+    mus = np.zeros((T, classesNo, dims))
+    sigmas = np.zeros((T, dims, dims, classesNo))
     alphas = np.zeros(T)
 
-    weights = np.ones(n) / n
+    # Step 0  - weights initialization
+    weights = np.ones(dataNo) / dataNo
     # print('weights', weights)
+
     for t in range(T):
+        # Step 1 - train weak learner - compute parameters of the gaussians of each class
         mu, sigma = mlParams(X, labels, weights)
         prior = computePrior(labels, weights)
+        # Step 2 - get weak hypothesis hi
         hi = classify(X, prior, mu, sigma, covdiag)
+
+        # save the data for the iteration round t of T
         priors[t] = prior
         mus[t] = mu
         sigmas[t] = sigma
 
-        error_sum = 0
-        for label_index, label in enumerate(labels):
-            if hi[label_index] != label:
-                error_sum += weights[label_index]
+        # Step 3 - compute alpha
+        # compute sum of errors times weights
+        epsilon = 0
+        for idx, label in enumerate(labels):
+            if hi[idx] != label:
+                epsilon += weights[idx]
 
         # print('error_sum', error_sum)
-        if error_sum == 0:
-            error_sum = 0.0000001
+        if epsilon == 0:
+            epsilon = 0.0000001
 
-        alphas[t] = (np.log(1 - error_sum) - np.log(error_sum)) / 2
+        alphas[t] = 1/2 * (np.log(1 - epsilon) - np.log(epsilon))
 
-        for label_index, label in enumerate(labels):
-            if hi[label_index] == label:
-                weights[label_index] *= np.exp(-alphas[t])
+        # Step 4 - update weights
+        for idx, label in enumerate(labels):
+            if hi[idx] == label:
+                weights[idx] *= np.exp(-alphas[t])
             else:
-                weights[label_index] *= np.exp(alphas[t])
+                weights[idx] *= np.exp(alphas[t])
 
         sum = 0
         for weight in weights:
@@ -440,25 +483,38 @@ def trainBoost(X,labels,T=5,covdiag=True):
 def classifyBoost(X,priors,mus,sigmas,alphas,covdiag=True):
     # Your code here
     # return c
-    n = len(X)
-    T = len(alphas)
-    c = len(priors[0])
-    matrix = np.zeros([n, c])
-    for t in range(T):
-        ht = classify(X, priors[t], mus[t], sigmas[t], covdiag)
-        for ni in range(n):
-            matrix[ni][ht[ni]] += alphas[t]
+    # n = len(X)
+    # T = len(alphas)
+    # c = len(priors[0])
+    # T = alphas.shape[0]
 
-    yPred = np.empty(n)
-    for ni in range(n):
-        likliest_class = None
-        highest_vote_value = None
-        for ci in range(c):
-            if likliest_class is None or matrix[ni][ci] > highest_vote_value:
-                likliest_class = ci
-                highest_vote_value = matrix[ni][ci]
-        yPred[ni] = likliest_class
-    return yPred
+    classesNo = priors.shape[1]
+    dims = X.shape[1]
+    dataNo = X.shape[0]
+    T = alphas.shape[0]
+
+    # print("T: ", T, "dataNo: ", dataNo, "classesNo: ", classesNo)
+    # print(priors.shape)
+
+    votes = np.zeros((dataNo, classesNo))
+    for t in range(T):
+        hypo = classify(X, priors[t], mus[t], sigmas[t], covdiag)
+        for i in range(dataNo):
+            # print("T: ", t, " votes[",i, "][",hypo[i],"] += alphas[", t, "]", " = ",  alphas[t])
+            votes[i][hypo[i]] += alphas[t]
+
+    H = np.empty(dataNo)
+    # for i in range(dataNo):
+    #     likliest_class = None
+    #     highest_vote_value = None
+    #     for cls in range(c):
+    #         if likliest_class is None or votes[i][cls] > highest_vote_value:
+    #             likliest_class = cls
+    #             highest_vote_value = votes[i][cls]
+    #     H[i] = likliest_class
+    H = np.argmax(votes, axis=1)
+    # print("H ", H)
+    return H
 
 
 # ## Define our testing function
@@ -520,7 +576,9 @@ def testClassifier(dataset='iris',dim=0,split=0.7,doboost=False,boostiter=5,covd
 # boundary in the last part of the lab.
 
 def plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=True):
-
+    figtitle = dataset + '_' + 'covdiag_' + str(covdiag) + '_boost_' + str(doboost)
+    fignam = figtitle + '.png'
+    plt.figure(fignam)
     X,y,pcadim = fetchDataset(dataset)
     xTr,yTr,xTe,yTe,trIdx,teIdx = trteSplitEven(X,y,split)
     pca = decomposition.PCA(n_components=2)
@@ -559,7 +617,7 @@ def plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=True
     ys = [i+xx+(i*xx)**2 for i in range(len(classes))]
     colormap = cm.rainbow(np.linspace(0, 1, len(ys)))
 
-    plt.hold(False)
+    # plt.hold(False)
     conv = ColorConverter()
     for (color, c) in zip(colormap, classes):
         try:
@@ -571,17 +629,16 @@ def plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=True
 
     plt.xlim(np.min(pX[:,0]),np.max(pX[:,0]))
     plt.ylim(np.min(pX[:,1]),np.max(pX[:,1]))
-    figtitle =dataset + '_' + 'covdiag_' + str(covdiag) + '_boost_' + str(doboost)
-    fignam = figtitle + '.png'
-    fig = plt.figure(1)
+
+    # fig = plt.figure(1)
     # plt.draw()
     plt.title(figtitle)
-    plt.show(block=False)
+    # plt.show(block=False)
     # plt.show(block=True)
 
-    # plt.savefig(fignam)
-    fig.savefig(fignam, dpi=fig.dpi);
-    plt.close(fig)
+    plt.savefig(fignam)
+    # fig.savefig(fignam, dpi=fig.dpi)
+    # plt.close(fig)
 
 
 # ## Run some experiments
@@ -603,23 +660,45 @@ def main1():
 def main_testclassifier():
     testClassifier(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=True)
     plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=True)
-    # testClassifier(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=False)
-    # plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=False)
+    testClassifier(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=False)
+    plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=False)
 
-    testClassifier(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=True)
-    plotBoundary(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    # testClassifier(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    # plotBoundary(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=True)
     # testClassifier(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=False)
     # plotBoundary(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=False)
-
-    testClassifier(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=True)
-    plotBoundary(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    #
+    # testClassifier(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    # plotBoundary(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=True)
     # testClassifier(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=False)
     # plotBoundary(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=False)
-
-    testClassifier(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=True)
-    plotBoundary(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    #
+    # testClassifier(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    # plotBoundary(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=True)
     # testClassifier(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=False)
     # plotBoundary(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=False)
+    pass
+
+def main_testboostclassifier():
+    testClassifier(dataset='iris',split=0.7,doboost=True,boostiter=5,covdiag=True)
+    plotBoundary(dataset='iris',split=0.7,doboost=True,boostiter=5,covdiag=True)
+    testClassifier(dataset='iris',split=0.7,doboost=True,boostiter=5,covdiag=False)
+    plotBoundary(dataset='iris',split=0.7,doboost=True,boostiter=5,covdiag=False)
+
+    testClassifier(dataset='wine',split=0.7,doboost=True,boostiter=5,covdiag=True)
+    plotBoundary(dataset='wine',split=0.7,doboost=True,boostiter=5,covdiag=True)
+    testClassifier(dataset='wine',split=0.7,doboost=True,boostiter=5,covdiag=False)
+    plotBoundary(dataset='wine',split=0.7,doboost=True,boostiter=5,covdiag=False)
+
+    testClassifier(dataset='vowel',split=0.7,doboost=True,boostiter=5,covdiag=True)
+    plotBoundary(dataset='vowel',split=0.7,doboost=True,boostiter=5,covdiag=True)
+    testClassifier(dataset='vowel',split=0.7,doboost=True,boostiter=5,covdiag=False)
+    plotBoundary(dataset='vowel',split=0.7,doboost=True,boostiter=5,covdiag=False)
+
+    testClassifier(dataset='olivetti',split=0.7,doboost=True,boostiter=5,covdiag=True)
+    plotBoundary(dataset='olivetti',split=0.7,doboost=True,boostiter=5,covdiag=True)
+    testClassifier(dataset='olivetti',split=0.7,doboost=True,boostiter=5,covdiag=False)
+    plotBoundary(dataset='olivetti',split=0.7,doboost=True,boostiter=5,covdiag=False)
     pass
 
 def main_final():
@@ -627,8 +706,8 @@ def main_final():
     np.set_printoptions(threshold=np.nan)
     np.set_printoptions(precision=25)
     np.set_printoptions(linewidth=200)
-    # datasets = ('iris', 'vowel', 'olivetti', 'wine')
-    datasets = ('iris', 'vowel', 'olivetti')
+    datasets = ('iris', 'vowel', 'olivetti', 'wine')
+    # datasets = ('iris', 'vowel', 'olivetti')
 
     for set in datasets:
         run(set, doboost=False, covdiag=True)
@@ -652,11 +731,81 @@ def main_dummydata():
     # print("mu ", mu)
     plotGaussian(X, labels, mu, sigma)
 
+def main_priors():
+    # X, labels = genBlobs(centers=5)
+    X = np.arange(12).reshape(6, 2)
+    labels = np.asarray([0, 1, 1, 0, 0, 1])
+    # print(X)
+    # print(X.shape)
+    W = 1 / X.shape[0] * np.ones(X.shape[0])
+    priors = computePrior(labels, W)
+    print("priors ", priors)
 
+    W = [ 3/2, 1, 1/2, 2, 1/2, 1/2]
+    # print(W)
+    # print(W.shape)
+    # W = np.ones(X.shape[0])
+    # W = np.arange(4)
+    priors = computePrior(labels, W)
+    print("priors ", priors)
+
+def dummyboostdata():
+    X = np.arange(48).reshape(24, 2)
+    labels = np.asarray([0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1])
+    priors, mus, sigmas, alphas = trainBoost(X, labels, T=5, covdiag=True)
+    H = classifyBoost(X, priors, mus, sigmas, alphas, covdiag=True)
+    SSE = 0
+    for i in range(X.shape[0]):
+        SSE += np.power((labels[i] - H[i]),1)
+        print("X H", labels[i], H[i])
+    print("SSE: ", SSE)
+
+def main_instructortests():
+    data = [[0.4211, 0.3684],
+            [0.3529, 0.3529],
+            [0.3000, 0.4000],
+            [0.5556, 0.3889],
+            [0.5263, 0.3684],
+            [0.3250, 0.3500],
+            [0.3372, 0.3488],
+            [0.3370, 0.3478],
+            [0.3759, 0.3534],
+            [0.4302, 0.3663],
+            [0.4353, 0.3294],
+            [0.3594, 0.3438],
+            [0.3618, 0.3374],
+            [0.3660, 0.3447],
+            [0.3632, 0.3498],
+            [0.3600, 0.3511],
+            [0.3525, 0.3525],
+            [0.3534, 0.3534],
+            [0.3562, 0.3519],
+            [0.3612, 0.3524]]
+    data = np.asarray(data)
+    labels = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    labels = np.asarray(labels)
+
+    mu, sigma = mlParams(data, labels)
+    print("mu: ", mu)
+    print("sigma: ", sigma)
+
+    prior = computePrior(labels)
+    print("prior: ", prior)
+
+    classes = classify(data, prior, mu, sigma, covdiag=False)
+    SSE = 0
+    for i in range(data.shape[0]):
+        SSE += np.power((labels[i] - classes[i]), 2)
+        print("X H", labels[i], classes[i])
+    print("SSE: ", SSE)
 if __name__ == '__main__':
     # main_dummydata()
     # main1()
     main_testclassifier()
+    # main_priors()
+    # dummyboostdata()
+    # main_instructortests()
+    # main_testboostclassifier()
     # main_final()
 
 
