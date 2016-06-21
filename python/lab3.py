@@ -341,23 +341,11 @@ def classify(X,prior,mu,sigma,covdiag=True):
                     L = np.linalg.cholesky(A)
                     v = np.linalg.solve(L, np.transpose(b))
                     # x = np.linalg.solve(L.getH(),y)
-                    y = np.linalg.solve(np.transpose(L), v)
+                    y = np.transpose([np.linalg.solve(np.transpose(L), v)])
 
 
-                    # lnl= np.log(np.linalg.det(sigmac))
-                    lnl = 2 * np.sum(np.log(np.diag(L)))
+                    lnl= np.log(np.linalg.det(sigmac))
 
-                    # return L, np.transpose(x)
-                    # print((-1 / 2 * lnl \
-                    #        - 1 / 2 * np.dot(np.transpose(b), x) \
-                    #        + np.log(prior[cls])).shape)
-                    # logPosteriors[cls, i] = -1 / 2 * lnl \
-                    #                         - 1 / 2 * np.dot(b, np.transpose(x)) \
-                    #                         + np.log(prior[cls])
-
-                    # logPosteriors[cls, i] = -1 / 2 * lnl \
-                    #                         - 1 / 2 * np.dot(b, x) \
-                    #                         + np.log(prior[cls])
                     # print("Full ", np.dot(np.dot(b, y), np.transpose(b)))
                     # print("Full ", np.dot(b, v))
 
@@ -367,18 +355,13 @@ def classify(X,prior,mu,sigma,covdiag=True):
                     # y = y.reshape((4, 1))
                     # print("y ", y, " ", y.shape)
                     # print("b ", b, " ", b.shape)
-                    # print("np.dot(b, y) ", t1, " ", t1.shape)
-                    # print("np.dot( y, np.transpose(b)) ", t2, " ", t2.shape)
+                    # print("np.transpose(np.transpose(b)) ", np.transpose(np.transpose(b)))
+                    # print("np.transpose(np.transpose(b)) ", np.transpose(np.transpose(b)).shape)
+                    # print("y ", y)
+                    # print("y ", y.shape)
                     logPosteriors[cls, i] = -1 / 2 * lnl \
-                                            - 1 / 2 * np.dot(b, v)  \
+                                            - 1 / 2 * np.dot(np.transpose(np.transpose(b)), y)  \
                                             + np.log(prior[cls])
-                    # print("Logpost ", logPosteriors[cls,i])
-                        #- 1 / 2 * np.dot(b, np.dot(y, np.transpose(b)))
-                        #- 1 / 2 * np.dot(np.dot(b, y), np.transpose(b)) \
-                        # - 1 / 2 * np.dot(np.dot(np.transpose(b), y), b) \
-                # logPosteriors[cls, i] = -1 / 2 * lnl \
-                    #                         - 1 / 2 * np.dot(np.transpose(b), np.transpose(x)) \
-                    #                         + np.log(prior)
 
     # print(logPosteriors)
     h = np.argmax(logPosteriors, axis=0)
@@ -658,24 +641,24 @@ def main1():
     plotGaussian(X, labels, mu, sigma)
 
 def main_testclassifier():
-    testClassifier(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=True)
-    plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    # testClassifier(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=True)
+    # plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=True)
     testClassifier(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=False)
-    plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=False)
+    # plotBoundary(dataset='iris',split=0.7,doboost=False,boostiter=5,covdiag=False)
 
     # testClassifier(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=True)
     # plotBoundary(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=True)
-    # testClassifier(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=False)
+    testClassifier(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=False)
     # plotBoundary(dataset='wine',split=0.7,doboost=False,boostiter=5,covdiag=False)
     #
     # testClassifier(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=True)
     # plotBoundary(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=True)
-    # testClassifier(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=False)
+    testClassifier(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=False)
     # plotBoundary(dataset='vowel',split=0.7,doboost=False,boostiter=5,covdiag=False)
     #
     # testClassifier(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=True)
     # plotBoundary(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=True)
-    # testClassifier(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=False)
+    testClassifier(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=False)
     # plotBoundary(dataset='olivetti',split=0.7,doboost=False,boostiter=5,covdiag=False)
     pass
 
@@ -801,12 +784,12 @@ def main_instructortests():
 if __name__ == '__main__':
     # main_dummydata()
     # main1()
-    main_testclassifier()
+    # main_testclassifier()
     # main_priors()
     # dummyboostdata()
     # main_instructortests()
     # main_testboostclassifier()
-    # main_final()
+    main_final()
 
 
 

@@ -1,45 +1,48 @@
-dataset: iris, covdiag: True, boost: True
-Final mean classification accuracy: 95.9333333333 Standard deviation: 2.77653305445
-
-dataset: iris, covdiag: False, boost: True
-Final mean classification accuracy: 94.7555555556 Standard deviation: 3.34841034699
-
-dataset: wine, covdiag: True, boost: True
-Final mean classification accuracy: 95.3773584906 Standard deviation: 2.31660927506
-
-dataset: wine, covdiag: False, boost: True
-Final mean classification accuracy: 56.3773584906 Standard deviation: 8.56063332133
-
-dataset: vowel, covdiag: True, boost: True
-Final mean classification accuracy: 67.2402597403 Standard deviation: 4.21465589794
-
-dataset: iris, covdiag: True, boost: True
-Final mean classification accuracy: 95.7111111111 Standard deviation: 2.86752786375
-
-dataset: iris, covdiag: False, boost: True
-Final mean classification accuracy: 94.0666666667 Standard deviation: 3.01526978094
-
-dataset: wine, covdiag: True, boost: True
-Final mean classification accuracy: 95.2264150943 Standard deviation: 2.71403141768
-
-dataset: wine, covdiag: False, boost: True
-Final mean classification accuracy: 55.0188679245 Standard deviation: 7.73225871584
-
-dataset: vowel, covdiag: True, boost: True
-Final mean classification accuracy: 67.2922077922 Standard deviation: 4.68132281184
-
-dataset: vowel, covdiag: False, boost: True
-Final mean classification accuracy: 52.8701298701 Standard deviation: 4.38316979285
-
-dataset: olivetti, covdiag: True, boost: True
-Final mean classification accuracy: 58.4833333333 Standard deviation: 3.62740341781
-
-dataset: olivetti, covdiag: False, boost: True
-Final mean classification accuracy: 7.25 Standard deviation: 4.26142255852
-
 dataset: iris, covdiag: True, boost: False
-Final mean classification accuracy: 95.7555555556 Standard deviation: 2.39536589643
+Final mean classification accuracy: 95.8888888889 Standard deviation: 2.48203421152
 
 dataset: iris, covdiag: False, boost: False
-Final mean classification accuracy: 95.3777777778 Standard deviation: 2.64210914626
+Final mean classification accuracy: 97.1333333333 Standard deviation: 2.01953423306
+
+dataset: iris, covdiag: True, boost: True
+Final mean classification accuracy: 95.4888888889 Standard deviation: 3.03811182427
+
+dataset: iris, covdiag: False, boost: True
+Final mean classification accuracy: 95.6888888889 Standard deviation: 2.62598599942
+
+dataset: vowel, covdiag: True, boost: False
+Final mean classification accuracy: 59.1298701299 Standard deviation: 4.05500633836
+
+dataset: vowel, covdiag: False, boost: False
+Final mean classification accuracy: 90.987012987 Standard deviation: 1.91151890836
+
+dataset: vowel, covdiag: True, boost: True
+Final mean classification accuracy: 67.5519480519 Standard deviation: 3.91494901265
+
+dataset: vowel, covdiag: False, boost: True
+Final mean classification accuracy: 90.6233766234 Standard deviation: 2.47830866325
+
+dataset: olivetti, covdiag: True, boost: False
+Final mean classification accuracy: 58.0916666667 Standard deviation: 3.33811115919
+
+dataset: olivetti, covdiag: False, boost: False
+Final mean classification accuracy: 54.3 Standard deviation: 3.7094473982
+
+dataset: olivetti, covdiag: True, boost: True
+Final mean classification accuracy: 58.525 Standard deviation: 3.57043220228
+
+dataset: olivetti, covdiag: False, boost: True
+Final mean classification accuracy: 54.9583333333 Standard deviation: 4.3467340869
+
+dataset: wine, covdiag: True, boost: False
+Final mean classification accuracy: 94.8490566038 Standard deviation: 2.42883766501
+
+dataset: wine, covdiag: False, boost: False
+Final mean classification accuracy: 98.4716981132 Standard deviation: 1.52573742449
+
+dataset: wine, covdiag: True, boost: True
+Final mean classification accuracy: 95.2641509434 Standard deviation: 2.62114793904
+
+dataset: wine, covdiag: False, boost: True
+Final mean classification accuracy: 88.5660377358 Standard deviation: 10.0437632634
 
